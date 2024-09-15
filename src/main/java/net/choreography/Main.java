@@ -6,7 +6,6 @@ import net.choreography.model.Figure;
 import net.choreography.model.FigureRepository;
 
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 
 public class Main {
@@ -28,9 +27,8 @@ public class Main {
         choreography.connect(waltzSteps.get("Natural Turn #2 part"));
 
         List<DirectedFigure> calculatedChoreography = choreography.calculateChoreography(finalDuration);
-        ListIterator<DirectedFigure> choreographyIterator = calculatedChoreography.listIterator();
-        while (choreographyIterator.hasNext()) {
-            System.out.println(choreographyIterator.next());
+        for (DirectedFigure figure : calculatedChoreography) {
+            System.out.println(figure);
         }
     }
 }

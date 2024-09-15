@@ -50,7 +50,6 @@ class ChoreographyTest {
         choreography.connect(secondFigure);
         choreography.connect(firstFigure);
 
-        Set<Figure> possibleConnections = choreography.listPossibleConnections();
         List<DirectedFigure> calculatedChoreography = choreography.calculateChoreography(4);
         assertEquals(4, calculatedChoreography.size());
         assertFigure(firstFigure, DirectedFigure.Direction.FRONT_RIGHT, calculatedChoreography.get(0));
