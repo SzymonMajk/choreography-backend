@@ -2,24 +2,24 @@ package net.choreography.model;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.ListIterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import static net.choreography.model.FigureRepository.PREPARATION_STEP;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ChoreographyTest {
-    private static final Position TEST_FIRST_POSITION = new Position(Position.Embrace.CLOSED, Position.Sway.LEFT);
-    private static final Position TEST_SECOND_POSITION = new Position(Position.Embrace.OPPOSITE, Position.Sway.RIGHT);
-    private static final String TEST_FIRST_FIGURE_NAME = "Test 1";
-    private static final String TEST_SECOND_FIGURE_NAME = "Test 2";
-    private final Figure firstFigure = new Figure(TEST_FIRST_FIGURE_NAME, TEST_FIRST_POSITION, TEST_SECOND_POSITION, 2, 1);
-    private final Figure secondFigure = new Figure(TEST_SECOND_FIGURE_NAME, TEST_SECOND_POSITION, TEST_FIRST_POSITION, 1, 1);
-
-    private final DirectedFigure testPreparationStep = new DirectedFigure(firstFigure, DirectedFigure.Direction.FRONT_LEFT);
+    private static final Position TEST_FIRST_POSITION = new Position(Position.Embrace.CLOSED, Position.StandingLeg.LEFT, Position.StandingLeg.RIGHT);
+    private static final Position TEST_SECOND_POSITION = new Position(Position.Embrace.OPPOSITE, Position.StandingLeg.LEFT, Position.StandingLeg.RIGHT);
+    private static final String TEST_FIGURE_NAME = "Test 2";
+    private final Figure firstFigure = new Figure(PREPARATION_STEP, TEST_FIRST_POSITION, TEST_SECOND_POSITION, 2, 1);
+    private final Figure secondFigure = new Figure(TEST_FIGURE_NAME, TEST_SECOND_POSITION, TEST_FIRST_POSITION, 1, 1);
+    private final Map<String, Figure> testFigures = Map.of(PREPARATION_STEP, firstFigure, TEST_FIGURE_NAME, secondFigure);
 
     @Test
     void shouldListOnlyPossibleConnectionsStartingFromFirstFigure() {
-        Choreography choreography = new Choreography(testPreparationStep, Set.of(firstFigure, secondFigure));
+        Choreography choreography = new Choreography(testFigures);
 
         Set<Figure> possibleConnections = choreography.listPossibleConnections();
         assertEquals(1, possibleConnections.size());
@@ -29,20 +29,34 @@ class ChoreographyTest {
 
     @Test
     void shouldAddPossibleConnectionAndConsiderItAsLastWithCorrectRotation() {
-        Choreography choreography = new Choreography(testPreparationStep, Set.of(firstFigure, secondFigure));
+        Choreography choreography = new Choreography(testFigures);
 
         choreography.connect(secondFigure);
 
         Set<Figure> possibleConnections = choreography.listPossibleConnections();
-        ListIterator<DirectedFigure> choreographyIterator = choreography.getChoreographyIterator();
+        List<DirectedFigure> calculatedChoreography = choreography.calculateChoreography(2);
         assertEquals(1, possibleConnections.size());
         assertTrue(possibleConnections.contains(firstFigure));
         assertFalse(possibleConnections.contains(secondFigure));
-        assertTrue(choreographyIterator.hasNext());
-        assertFigure(firstFigure, DirectedFigure.Direction.FRONT_RIGHT, choreographyIterator.next());
-        assertTrue(choreographyIterator.hasNext());
-        assertFigure(secondFigure, DirectedFigure.Direction.RIGHT, choreographyIterator.next());
-        assertFalse(choreographyIterator.hasNext());
+        assertEquals(2, calculatedChoreography.size());
+        assertFigure(firstFigure, DirectedFigure.Direction.FRONT_RIGHT, calculatedChoreography.get(0));
+        assertFigure(secondFigure, DirectedFigure.Direction.RIGHT, calculatedChoreography.get(1));
+    }
+
+    @Test
+    void shouldShouldLoopChoreographyWhenChoreographyDurationLongerThanFiguresDuration() {
+        Choreography choreography = new Choreography(testFigures);
+
+        choreography.connect(secondFigure);
+        choreography.connect(firstFigure);
+
+        Set<Figure> possibleConnections = choreography.listPossibleConnections();
+        List<DirectedFigure> calculatedChoreography = choreography.calculateChoreography(4);
+        assertEquals(4, calculatedChoreography.size());
+        assertFigure(firstFigure, DirectedFigure.Direction.FRONT_RIGHT, calculatedChoreography.get(0));
+        assertFigure(secondFigure, DirectedFigure.Direction.RIGHT, calculatedChoreography.get(1));
+        assertFigure(firstFigure, DirectedFigure.Direction.BACK, calculatedChoreography.get(2));
+        assertFigure(secondFigure, DirectedFigure.Direction.RIGHT, calculatedChoreography.get(3));
     }
 
     private void assertFigure(Figure expectedFigure, DirectedFigure.Direction expectedDirection, DirectedFigure actual) {

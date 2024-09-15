@@ -7,6 +7,7 @@ import net.choreography.model.FigureRepository;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
@@ -16,16 +17,18 @@ public class Main {
     }
 
     private static void printSlowWaltz() {
-        System.out.println("Lets start with quick demo on our slow waltz!");
+        int finalDuration = 10;
+        System.out.printf("Lets start with quick demo on our slow waltz basics for %s beats with prep\r\n", finalDuration);
 
         FigureRepository figureRepository = new FigureRepository();
-        DirectedFigure preparationStep = figureRepository.getWaltzPreparationStep();
-        List<Figure> waltzSteps = figureRepository.getWaltzFigures().stream().toList();
+        Map<String, Figure> waltzSteps = figureRepository.getWaltzFigures();
 
-        Choreography choreography = new Choreography(preparationStep, figureRepository.getWaltzFigures());
-        choreography.connect(waltzSteps.get(1));
+        Choreography choreography = new Choreography(waltzSteps);
+        choreography.connect(waltzSteps.get("Natural Turn #1 part"));
+        choreography.connect(waltzSteps.get("Natural Turn #2 part"));
 
-        ListIterator<DirectedFigure> choreographyIterator = choreography.getChoreographyIterator();
+        List<DirectedFigure> calculatedChoreography = choreography.calculateChoreography(finalDuration);
+        ListIterator<DirectedFigure> choreographyIterator = calculatedChoreography.listIterator();
         while (choreographyIterator.hasNext()) {
             System.out.println(choreographyIterator.next());
         }
